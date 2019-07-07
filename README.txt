@@ -5,11 +5,11 @@
 
 ---To Do
 >Build data reader to read the csv
->Test a simple a+bx model for pick the winner bet
+>Build a simple query engine to summarize data
 
 
 ---Procedure for using Git
-> git pull # Pull any new update from server to local
+> git pull origin master # Pull any new update from server to local
 > (Modify code ...)
 > git add * # Add everything to git
 > git commit -m "message here"

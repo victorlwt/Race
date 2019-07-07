@@ -1,0 +1,6 @@
+---Odds
+Sum(1/odd) for each race is around 1.2 which mean there should be around 1.22 winner per gaqme in order for the odds to
+be fair.
+
+---Hedging
+If the Place odd and Win odd is against each other, there may be hedging opportunity.
