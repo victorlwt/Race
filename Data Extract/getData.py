@@ -8,7 +8,7 @@ def getBasePage(date):
 	url = "https://racing.hkjc.com/racing/information/English/Racing/LocalResults.aspx?RaceDate=" + date + "&Racecourse=ST&RaceNo=1"
 	dr = webdriver.PhantomJS(executable_path='Data Extract/phantomjs.exe')
 	dr.get(url)
-	time.sleep(3)
+	time.sleep(2)
 	try:
 		bsObj = BeautifulSoup(dr.page_source)
 		dr.close()
