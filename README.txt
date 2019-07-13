@@ -1,13 +1,3 @@
----File Description
->win.py is a file containing code for pick the winner bet.
->Data directory is for storing data from scrapper now in csv format for easier reading for pandas
-
-
----To Do
->Build data reader to read the csv
->Build a simple query engine to summarize data
-
-
 ---Procedure for using Git
 > git pull origin master # Pull any new update from server to local
 > (Modify code ...)
