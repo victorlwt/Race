@@ -20,24 +20,24 @@ def getBasePage(url):
 	except:
 		dr.close()
 
-def getData():
+def getData(name1, name2, name3):
 	global T1, T2, T3
 	table = T1.find_all("table")[1]
 	df = pd.read_html(table.prettify())[0]
 	df = df.drop(1, axis=1).drop(2, axis=1).drop(15, axis=0)
-	with open("realtimewin.df", "wb") as f:
+	with open(name1, "wb") as f:
 		pk.dump(df, f)
 
 	table = T2.find("table")
 	df = pd.read_html(table.prettify())[0]
-	with open("realtimeQIN.df", "wb") as f:
+	with open(name2, "wb") as f:
 		pk.dump(df, f)
 
 	table = T3.find("table")
 	df = pd.read_html(table.prettify())[0]
-	with open("realtimeQPL.df", "wb") as f:
+	with open(name3, "wb") as f:
 		pk.dump(df, f)
 
 
 getBasePage("https://bet.hkjc.com/racing/pages/odds_wpq.aspx?lang=en&dv=local")
-getData()
+getData("realtimewin.df", "realtimeQIN.df", "realtimeQPL.df")
