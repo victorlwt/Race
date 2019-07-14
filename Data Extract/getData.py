@@ -2,6 +2,8 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
 import os
+from io import StringIO
+import pandas as pd
 
 
 def getBasePage(date):
@@ -26,7 +28,8 @@ def scrapeAllData(bp, date):
 	no_of_races = len(b)
 	file = open("Data/" + date.replace("/", "-") + ".csv", "w")
 	for i in range(no_of_races):
-		file.write(str(i + 1) + "\n")
+		table_string = ''
+		table_string += (str(i + 1) + "\n")
 		if bp.find("div", "performance") is None:
 			file.close()
 			os.remove(date + ".csv")
@@ -38,8 +41,8 @@ def scrapeAllData(bp, date):
 		headings = table.find("thead").find_all("td")
 		horses = table.find("tbody").find_all("tr")
 		for heading in headings:
-			file.write(heading.get_text() + ",")
-		file.write("\n")
+			table_string += (heading.get_text() + ",")
+		table_string += "\n"
 		for horse in horses:
 			atts = horse.find_all("td")
 			for att in atts:
@@ -50,12 +53,16 @@ def scrapeAllData(bp, date):
 					s = ""
 					for x in t[1:]:
 						s += x.get_text().strip() + " "
-					file.write(s.rstrip() + ",")
+					table_string += (s.rstrip() + ",")
 				elif len(t2) != 0:
-					file.write(t2[0].get_text().strip() + ",")
+					table_string += (t2[0].get_text().strip() + ",")
 				else:
-					file.write(att.get_text().strip() + ",")
-			file.write("\n")
+					table_string += (att.get_text().strip() + ",")
+			table_string += "\n"
+		csv = StringIO(table_string)
+		df = pd.read_csv(csv)
+		print(df)
+		print(date)
 	file.close()
 	return True
 
@@ -69,19 +76,5 @@ with open("Data Extract/valid_dates.txt", "r") as f:
 	for d in f:
 		date = d.strip()
 		basePage = getBasePage(date)
-		if basePage is None:
-			print("Error of accessing the page")
-		else:
-			is_success = scrapeAllData(basePage, date)
-			# Try one more time
-			if not is_success:
-				basePage = getBasePage(date)
-				if basePage is None:
-					print("Error of accessing the page")
-				else:
-					is_sucess = scrapeAllData(basePage, date)
-			if is_success:
-				success = success + 1
-				print(str(success) + " file(s) has been successfully created...(" + str(count) + "/" + str(
-					num_lines) + ")")
-		count = count + 1
+		scrapeAllData(basePage, date)
+		

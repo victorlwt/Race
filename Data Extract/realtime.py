@@ -24,7 +24,7 @@ def getData(name1, name2, name3):
 	global T1, T2, T3
 	table = T1.find_all("table")[1]
 	df = pd.read_html(table.prettify())[0]
-	df = df.drop(1, axis=1).drop(2, axis=1).drop(15, axis=0)
+	df = df.drop(1, axis=1).drop(2, axis=1).drop(len(df)-1, axis=0)
 	with open(name1, "wb") as f:
 		pk.dump(df, f)
 
@@ -39,5 +39,5 @@ def getData(name1, name2, name3):
 		pk.dump(df, f)
 
 
-getBasePage("https://bet.hkjc.com/racing/pages/odds_wpq.aspx?lang=en&dv=local")
-getData("realtimewin.df", "realtimeQIN.df", "realtimeQPL.df")
+# getBasePage("https://bet.hkjc.com/racing/pages/odds_wpq.aspx?lang=en&dv=local")
+# getData("realtimewin.df", "realtimeQIN.df", "realtimeQPL.df")

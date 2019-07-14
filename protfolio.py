@@ -96,6 +96,7 @@ class Portfolio(nn.Module):
                 losses += 1
         print('Loss Probability = ', losses/len(r))
         plt.hist(r, bins='auto')
+        plt.axvline(x=invest, color='Red')
         plt.show()
 
 
@@ -136,16 +137,6 @@ results = [Result(r, 14) for r in permutations(s, 3)]
 pays = [r.returns(o, double=False) for r in results]
 out = np.stack(pays, axis=0)
 out = torch.Tensor(out)
-port = Portfolio(14, double=False)
-Optimizer = torch.optim.SGD([port.weights], lr=0.0001, momentum=0.3)
-for i in range(500):
-    Optimizer.zero_grad()
-    l = port.loss(out)
-    l.backward()
-    Optimizer.step()
-l = port.loss(out)
-port.plot(out)
-
 port = Portfolio(14, double=False)
 Optimizer = torch.optim.SGD([port.weights], lr=0.0001, momentum=0.3)
 for i in range(500):
