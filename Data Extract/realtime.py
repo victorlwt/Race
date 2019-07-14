@@ -7,18 +7,18 @@ import os
 
 global T1, T2, T3
 
+
 def getBasePage(url):
 	global T1, T2, T3
 	dr = webdriver.PhantomJS(executable_path='phantomjs.exe')
 	dr.get(url)
 	time.sleep(2)
-	try:
-		T1 = BeautifulSoup(dr.find_element_by_id("wpTable1").get_attribute("innerHTML"))
-		T2 = BeautifulSoup(dr.find_element_by_id("combOddsTableQIN").get_attribute("innerHTML"))
-		T3 = BeautifulSoup(dr.find_element_by_id("combOddsTableQPL").get_attribute("innerHTML"))
-		dr.close()
-	except:
-		dr.close()
+	T1 = BeautifulSoup(dr.find_element_by_id("wpTable1").get_attribute("innerHTML"))
+	T2 = BeautifulSoup(dr.find_element_by_id("combOddsTableQIN").get_attribute("innerHTML"))
+	T3 = BeautifulSoup(dr.find_element_by_id("combOddsTableQPL").get_attribute("innerHTML"))
+	dr.close()
+
+
 
 def getData(name1, name2, name3):
 	global T1, T2, T3

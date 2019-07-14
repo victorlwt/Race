@@ -1,23 +1,24 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
-import os
 from io import StringIO
 import pandas as pd
+import pickle as pk
+from datetime import datetime
 
 
 def getBasePage(date):
 	url = "https://racing.hkjc.com/racing/information/English/Racing/LocalResults.aspx?RaceDate=" + date + "&Racecourse=ST&RaceNo=1"
-	dr = webdriver.PhantomJS(executable_path='Data Extract/phantomjs.exe')
+	options = webdriver.ChromeOptions()
+	options.add_argument("--disable-extensions")
+	options.add_argument("--disable-gpu")
+	options.add_argument("--headless")
+	dr = webdriver.Chrome(chrome_options=options)
 	dr.get(url)
 	time.sleep(2)
-	try:
-		bsObj = BeautifulSoup(dr.page_source)
-		dr.close()
-		return bsObj
-	except:
-		dr.close()
-		return None
+	bsObj = BeautifulSoup(dr.page_source, 'lxml')
+	dr.close()
+	return bsObj
 
 
 def scrapeAllData(bp, date):
@@ -26,14 +27,9 @@ def scrapeAllData(bp, date):
 		return False
 	b = t[0].find("tbody").find_all("tr")[0].find_all("a")
 	no_of_races = len(b)
-	file = open("Data/" + date.replace("/", "-") + ".csv", "w")
+	table_list = []
 	for i in range(no_of_races):
 		table_string = ''
-		table_string += (str(i + 1) + "\n")
-		if bp.find("div", "performance") is None:
-			file.close()
-			os.remove(date + ".csv")
-			return False
 		table = bp.find("div", "performance").find("table")
 		# Remove all br tags
 		for e in table.find_all("br"):
@@ -61,20 +57,24 @@ def scrapeAllData(bp, date):
 			table_string += "\n"
 		csv = StringIO(table_string)
 		df = pd.read_csv(csv)
-		print(df)
-		print(date)
+		df = df.drop('Unnamed: 12', axis=1)
+		table_list.append(df)
+	d = datetime.strptime(date, '%d-%m-%Y')
+	file = open("../Data/Results/" + d.strftime('%Y%m%d') + "_result.dfl", "wb")
+	pk.dump(table_list, file)
 	file.close()
 	return True
 
 
-os.chdir(os.pardir)
-num_lines = sum(1 for line in open('Data Extract/valid_dates.txt'))
-with open("Data Extract/valid_dates.txt", "r") as f:
+num_lines = sum(1 for line in open('valid_dates.txt'))
+with open("valid_dates.txt", "r") as f:
 	print("There are " + str(num_lines) + " dates in total.")
 	count = 1
 	success = 0
+	i = 1
 	for d in f:
 		date = d.strip()
 		basePage = getBasePage(date)
 		scrapeAllData(basePage, date)
-		
+		print(i, '.', date, ' Scraped')
+		i += 1

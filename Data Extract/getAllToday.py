@@ -1,4 +1,4 @@
-from realtime import *
+from .realtime import getBasePage, getData
 date = input("Please input the date.")
 no_of_races = int(input("Please input the number of races."))
 
