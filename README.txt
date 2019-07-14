@@ -8,3 +8,4 @@
 
 ---Format description:
 >.dfl = List of Pandas DataFrame
+>.dfdl = List of Dictionary of DataFrame

@@ -58,7 +58,7 @@ def scrapeAllData(bp, date):
 		df = pd.read_csv(csv)
 		df = df.drop('Unnamed: 12', axis=1)
 		table_list.append(df)
-	d = datetime.strptime(date, '%d-%m-%Y')
+	d = datetime.strptime(date, '%d/%m/%Y')
 	file = open("../Data/Results/" + d.strftime('%Y%m%d') + "_result.dfl", "wb")
 	pk.dump(table_list, file)
 	file.close()
