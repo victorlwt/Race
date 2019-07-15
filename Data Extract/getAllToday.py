@@ -1,11 +1,9 @@
-from datetime import datetime
 import pickle as pk
 from getOddData import getBasePage, getData
 
 
 date = input("Please input the date:")
 no_of_races = int(input("Please input the number of races:"))
-now = datetime.now()
 
 odds_list = []
 for i in range(no_of_races):
@@ -13,5 +11,5 @@ for i in range(no_of_races):
 	race_odd = getData()
 	odds_list.append(race_odd)
 	print(i + 1, 'races scraped.')
-with open('../Data/Odds/' + now.strftime('%Y%m%d') + '_odd.dfdl', 'wb') as f:
+with open('../Data/Odds/' + date + '_odd.dfdl', 'wb') as f:
 	pk.dump(odds_list, f)
