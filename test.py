@@ -1,6 +1,9 @@
 import pickle as pk
 
-with open('./Data/Odds/20190714_odd.dfdl', 'rb') as f:
-    x = pk.load(f)
+f = open('./Data/Results/20190714_result.dfl', 'rb')
+x = pk.load(f)
+for df in x:
+    print(df)
 
-print(x)
+
+

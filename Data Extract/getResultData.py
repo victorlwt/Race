@@ -1,79 +1,66 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
-from io import StringIO
 import pandas as pd
 import pickle as pk
 from datetime import datetime
 
-
-def getBasePage(date):
-	url = "https://racing.hkjc.com/racing/information/English/Racing/LocalResults.aspx?RaceDate=" + date + "&Racecourse=ST&RaceNo=1"
-	options = webdriver.ChromeOptions()
-	options.add_argument("--disable-extensions")
-	options.add_argument("--headless")
-	dr = webdriver.Chrome(chrome_options=options)
-	dr.get(url)
-	time.sleep(2)
-	bsObj = BeautifulSoup(dr.page_source, 'lxml')
-	dr.close()
-	return bsObj
+options = webdriver.ChromeOptions()
+options.add_argument("--disable-extensions")
+options.add_argument("--headless")
+dr = webdriver.Chrome(chrome_options=options)
 
 
-def scrapeAllData(bp, date):
-	t = bp.find_all("table", "js_racecard")
-	if len(t) == 0 or len(t[0].find("tbody").find_all("tr")) == 0:
-		return False
-	b = t[0].find("tbody").find_all("tr")[0].find_all("a")
-	no_of_races = len(b)
-	table_list = []
-	for i in range(no_of_races):
-		table_string = ''
-		table = bp.find("div", "performance").find("table")
-		# Remove all br tags
-		for e in table.find_all("br"):
-			e.extract()
-		headings = table.find("thead").find_all("td")
-		horses = table.find("tbody").find_all("tr")
-		for heading in headings:
-			table_string += (heading.get_text() + ",")
-		table_string += "\n"
-		for horse in horses:
-			atts = horse.find_all("td")
-			for att in atts:
-				# Check if this is a name
-				t = att.find_all("div")
-				t2 = att.find_all("a")
-				if len(t) != 0:
-					s = ""
-					for x in t[1:]:
-						s += x.get_text().strip() + " "
-					table_string += (s.rstrip() + ",")
-				elif len(t2) != 0:
-					table_string += (t2[0].get_text().strip() + ",")
-				else:
-					table_string += (att.get_text().strip() + ",")
-			table_string += "\n"
-		csv = StringIO(table_string)
-		df = pd.read_csv(csv)
-		df = df.drop('Unnamed: 12', axis=1)
-		table_list.append(df)
-	d = datetime.strptime(date, '%d/%m/%Y')
-	file = open("../Data/Results/" + d.strftime('%Y%m%d') + "_result.dfl", "wb")
-	pk.dump(table_list, file)
-	file.close()
-	return True
+def getBasePage(date, race_no):
+    url = "https://racing.hkjc.com/racing/information/English/Racing/LocalResults.aspx?RaceDate=" + date + "&Racecourse=ST&RaceNo=" + str(race_no)
+    dr.get(url)
+    time.sleep(0.5)
+    bsObj = BeautifulSoup(dr.page_source, 'lxml')
+    return bsObj
+
+
+def scrapeTable(bp):
+    table = bp.find('div', class_='performance')
+    race = bp.find('div', class_='race_tab')
+    meeting = bp.find('div', class_='raceMeeting_select')
+    venue = meeting.find('span', class_='f_fl f_fs13').text
+    venue = venue[25:].strip()
+    mode = race.find('td', style='width: 385px;').text
+    going = race.find('td', colspan='14').text
+    table = table.find('table', class_='f_tac table_bd draggable')
+    df = pd.read_html(str(table))[0]
+    for i in range(len(df)):
+        if df.loc[i, 'Win Odds'] == '---':
+            df = df.drop(i, axis=0)
+    df['Mode'] = [mode for _ in range(len(df))]
+    df['Going'] = [going for _ in range(len(df))]
+    df['Venue'] = [venue for _ in range(len(df))]
+    return df
 
 
 num_lines = sum(1 for line in open('valid_dates.txt'))
 with open("valid_dates.txt", "r") as f:
-	print("There are " + str(num_lines) + " dates in total.")
-	count = 1
-	success = 0
-	i = 1
-	for d in f:
-		date = d.strip()
-		basePage = getBasePage(date)
-		scrapeAllData(basePage, date)
-		print(i, '.', date, ' Scraped')
-		i += 1
+    print("There are " + str(num_lines) + " dates in total.")
+    count = 1
+    success = 0
+    i = 1
+    for d in f:
+        day = []
+        d = d.strip()
+        dstr = datetime.strptime(d, '%d/%m/%Y').strftime('%Y%m%d')
+        i = 0
+        while True:
+            try:
+                i += 1
+                bp = getBasePage(d, i)
+                df = scrapeTable(bp)
+                day.append(df)
+            except AttributeError:
+                break
+        if len(day) != 0:
+            print(len(day), 'races in', d, 'scrapped.')
+            f = open('../Data/Results/' + dstr + '_result.dfl', 'wb')
+            pk.dump(day, f)
+            f.close()
+
+dr.close()

@@ -1,6 +1,5 @@
 import pickle as pk
 from getOddData import getBasePage, getData
-from datetime import datetime
 
 
 date = input("Please input the date:")

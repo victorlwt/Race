@@ -70,7 +70,7 @@ class Portfolio(nn.Module):
             size += h*(h-1)/2
 
         w = np.random.normal(loc=1, scale=0.2, size=[1, int(size)])
-        w = torch.Tensor(w)
+        w = torch.tensor(w)
         self.weights = nn.Parameter(w)
 
     def forward(self):
@@ -131,12 +131,71 @@ def random_odds(h, factor=0.82, single=True, place=True, double=True, place_q=Tr
     return odds
 
 
+class Odds:
+
+    def __init__(self, odd_dict):
+        self.odd = odd_dict
+        self.no_horse = len(odd_dict['win+place'])
+        self.numbers = [str(i + 1) for i in range(self.no_horse)]
+
+    def locate_odds(self, df, h1, h2=None, option=None):
+
+        if h2 is None:
+            h1 = int(h1)
+            if option == 'win':
+                y = h1 + 1
+                x = 4
+            else:
+                y = h1 + 1
+                x = 4
+        else:
+            h1 = int(h1)
+            h2 = int(h2)
+            if h1 > h2:
+                tmp = h1
+                h1 = h2
+                h2 = tmp
+            if h1 < 8:
+                y = h1
+                x = h2 + 1
+            else:
+                y = h2 - 7
+                x = h1 - 7
+        return float(df.loc[y, x])
+
+    def to_list(self, single=True, place=True, double=True, place_q=True):
+
+        odds = []
+
+        if single:
+            for h in self.numbers:
+                odd = self.locate_odds(self.odd['win+place'], h, option='win')
+                odds.append(odd)
+
+        if place:
+            for h in self.numbers:
+                odd = self.locate_odds(self.odd['win+place'], h, option='place')
+                odds.append(odd)
+
+        if double:
+            for h in combinations(self.numbers, 2):
+                odd = self.locate_odds(self.odd['quinella'], *h)
+                odds.append(odd)
+
+        if place_q:
+            for h in combinations(self.numbers, 2):
+                odd = self.locate_odds(self.odd['quinella_p'], *h)
+                odds.append(odd)
+
+        return odds
+
+
 o = random_odds(14, factor=0.82, double=False)
 s = [str(i+1) for i in range(14)]
 results = [Result(r, 14) for r in permutations(s, 3)]
 pays = [r.returns(o, double=False) for r in results]
 out = np.stack(pays, axis=0)
-out = torch.Tensor(out)
+out = torch.tensor(out)
 port = Portfolio(14, double=False)
 Optimizer = torch.optim.SGD([port.weights], lr=0.0001, momentum=0.3)
 for i in range(500):
@@ -146,4 +205,6 @@ for i in range(500):
     Optimizer.step()
 l = port.loss(out)
 port.plot(out)
+
+
 
