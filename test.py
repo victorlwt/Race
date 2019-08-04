@@ -1,9 +1,10 @@
-import pickle as pk
+import torch
 
-f = open('./Data/Results/20190714_result.dfl', 'rb')
-x = pk.load(f)
-for df in x:
-    print(df)
+x = torch.eye(3)
+y = torch.tensor([1, 2, 3], dtype=torch.float)
+print(x, y)
+print(x * y)
+print(len(x))
 
 
 

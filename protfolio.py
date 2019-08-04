@@ -27,14 +27,14 @@ class Portfolio:
         w = np.random.normal(loc=1, scale=0.2, size=[1, int(size)])
         self.weights = torch.tensor(w, dtype=torch.float32, requires_grad=True)
         self.optim = torch.optim.SGD([self.weights], lr=0.0001, momentum=0.2)
-
         self.horse = [str(i + 1) for i in range(h)]
         self.horse_combination = [c for c in combinations(self.horse, 2)]
         self.odds = odds
 
-    def forward(self, outcomes):
+    def forward(self, outcomes, prob):
         amount = F.relu(self.weights.sum())
-        r = outcomes * self.weights
+        r = outcomes * prob
+        r = r * self.weights
         r = r.sum(dim=1) - amount
         return -r.sum()
 
@@ -60,20 +60,25 @@ class Portfolio:
         plt.axvline(x=invest, color='Red')
         plt.show()
 
-    def optimize(self):
+    def optimize(self, prob=None):
 
         pays = [self._return(r) for r in permutations(self.horse, 3)]
+        no_outcomes = len(pays)
         pays = np.stack(pays, axis=0)
         pays = torch.tensor(pays)
+
+        if prob is None:
+            prob = torch.ones(no_outcomes, dtype=torch.float)
+
         for i in range(300):
             self.optim.zero_grad()
-            loss = self.forward(pays)
+            loss = self.forward(pays, prob)
             loss.backward()
             self.optim.step()
 
     def profit(self, winner):
         r = self._return(winner)
-        r = r.view([210, 1])
+        r = r.view([-1, 1])
         p = torch.matmul(F.relu(self.weights), r)
         return float(p)
 
